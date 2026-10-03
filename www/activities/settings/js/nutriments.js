@@ -122,6 +122,93 @@ app.Nutriments = {
     li.appendChild(button);
   },
 
+  bindSortControls: function() {
+    let page = document.querySelector(".page[data-name='settings-nutriments']");
+    let list = page.querySelector(".list.sortable");
+    let menu = page.querySelector("#menu");
+    let done = page.querySelector("#sort-done");
+    let cancel = page.querySelector("#sort-cancel");
+    let defaults = page.querySelector("#sort-defaults");
+
+    // Order when reordering started, restored if the user cancels
+    let originalOrder;
+
+    let setSorting = (enabled) => {
+      if (enabled) {
+        originalOrder = app.Nutriments.getNutriments().slice();
+        app.f7.sortable.enable(list);
+      } else {
+        app.f7.sortable.disable(list);
+      }
+      menu.style.display = enabled ? "none" : "";
+      [done, cancel, defaults].forEach((x) => x.style.display = enabled ? "" : "none");
+    };
+
+    menu.addEventListener("click", function(e) {
+      let reorderText = app.strings.settings.nutriments["reorder"] || "Reorder";
+      let popover = app.f7.popover.create({
+        targetEl: menu,
+        content: `
+          <div class="popover" style="width: auto; min-width: 160px;">
+            <div class="popover-inner">
+              <div class="list no-chevron">
+                <ul>
+                  <li>
+                    <a href="#" class="item-link item-content popover-close" id="reorder">
+                      <div class="item-inner">
+                        <div class="item-title">${app.Utils.escapeHtml(reorderText)}</div>
+                      </div>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        `,
+        on: {
+          closed: (p) => {
+            p.$el.remove();
+            p.destroy();
+          }
+        }
+      });
+      popover.el.querySelector("#reorder").addEventListener("click", function(e) {
+        setSorting(true);
+      });
+      popover.open();
+    });
+
+    done.addEventListener("click", function(e) {
+      setSorting(false);
+    });
+
+    cancel.setAttribute("aria-label", app.strings.dialogs.cancel || "Cancel");
+    cancel.addEventListener("click", function(e) {
+      app.Nutriments.applyOrder(originalOrder);
+      setSorting(false);
+    });
+
+    defaults.addEventListener("click", function(e) {
+      // Built-in nutrients in their default order, followed by custom fields
+      let custom = app.Nutriments.getNutriments().filter((x) => !app.nutriments.includes(x));
+      app.Nutriments.applyOrder(app.nutriments.concat(custom));
+    });
+  },
+
+  applyOrder: function(order) {
+    // Move the existing list items so their toggles stay bound
+    let ul = document.querySelector(".page[data-name='settings-nutriments'] #nutriment-list");
+    let items = Array.from(ul.children);
+    let addButton = items[items.length - 1];
+    order.forEach((n) => {
+      let li = items.find((x) => x.id === n);
+      if (li !== undefined)
+        ul.insertBefore(li, addButton);
+    });
+
+    app.Settings.put("nutriments", "order", order);
+  },
+
   showNutrimentDialog: function(title, fieldName, fieldUnit, callback) {
 
     // Create dialog inputs

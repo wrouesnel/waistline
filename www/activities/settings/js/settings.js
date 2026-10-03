@@ -991,8 +991,10 @@ app.Settings = {
 document.addEventListener("page:init", async function(e) {
   const pageName = e.target.attributes["data-name"].value;
 
-  if (pageName == "settings-nutriments")
+  if (pageName == "settings-nutriments") {
     app.Nutriments.populateNutrimentList();
+    app.Nutriments.bindSortControls();
+  }
 
   if (pageName == "settings-body-stats")
     app.BodyStats.populateBodyStatsList();

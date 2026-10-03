@@ -26,12 +26,17 @@
         <a class="link back"><i class="icon icon-back"></i></a>
       </div>
       <div class="title" data-localize="settings.nutriments.title">Nutrients</div>
-      <div class="right"></div>
+      <div class="right">
+        <a href="#" id="sort-defaults" class="button" style="display: none;" data-localize="settings.nutriments.default">Default</a>
+        <a href="#" id="sort-cancel" class="link icon-only" style="display: none;"><i class="icon material-icons">close</i></a>
+        <a href="#" id="sort-done" class="link icon-only" style="display: none;"><i class="icon material-icons">done</i></a>
+        <a href="#" id="menu" class="link icon-only"><i class="icon material-icons">more_vert</i></a>
+      </div>
     </div>
   </div>
 
   <div class="page-content">
-    <div class="list sortable sortable-tap-hold">
+    <div class="list sortable sortable-opposite sortable-tap-hold">
       <ul id="nutriment-list">
         <li id="kilojoules" class="no-sorting" style="display: none;">
           Kilojoules

@@ -86,3 +86,7 @@ div.food-thumbnail > img {max-width: 100%; max-height: 12em;}
   margin-left: 6px;
   --f7-checkbox-extra-margin: 16px;
 }
+
+.navbar .right .button {
+  width: auto;
+}

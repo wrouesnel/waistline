@@ -1,5 +1,16 @@
 # Waistline
 
+> **This `main` branch is a personal tracking branch.** It is upstream Waistline
+> ([davidhealey/waistline](https://github.com/davidhealey/waistline), tracked here as
+> `upstream-main`) with my own features merged in. Each feature is developed on a `dev/<feature>`
+> branch, and its `rel/<feature>` branch holds it as a single commit on top of `upstream-main`
+> until it is merged upstream. For the official app, use the upstream repository.
+>
+> Features merged here:
+> - `rel/ocr-nutrition`: on-device OCR of nutrition labels in the food editor.
+> - `rel/ocr-mlkit`: Google ML Kit as an optional OCR engine for the scanner (proprietary; chosen
+>   in Settings > Foods, Meals, Recipes).
+
 Waistline is a libre calorie counter and weight tracker app for Android. It's built with Cordova, Framework7, and a few other free libraries.
 
 ### App Features

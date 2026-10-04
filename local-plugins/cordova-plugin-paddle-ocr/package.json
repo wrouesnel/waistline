@@ -1,0 +1,11 @@
+{
+  "name": "cordova-plugin-paddle-ocr",
+  "version": "1.0.0",
+  "description": "On-device text recognition with PaddleOCR PP-OCRv5 mobile models and ONNX Runtime",
+  "cordova": {
+    "id": "cordova-plugin-paddle-ocr",
+    "platforms": ["android"]
+  },
+  "keywords": ["ecosystem:cordova", "cordova-android", "ocr"],
+  "license": "GPL-3.0-or-later"
+}

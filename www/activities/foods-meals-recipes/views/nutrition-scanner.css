@@ -1,0 +1,168 @@
+/* Live nutrition label scanner: the camera preview is drawn natively behind the WebView, so
+   everything except the scanner overlay is made transparent or hidden while it is open */
+
+html.nutrition-live-active,
+html.nutrition-live-active body,
+html.nutrition-live-active #app,
+html.nutrition-live-active .framework7-root {
+  background: transparent !important;
+}
+
+html.nutrition-live-active #app > *:not(.nutrition-live) {
+  visibility: hidden;
+}
+
+.nutrition-live {
+  position: absolute;
+  inset: 0;
+  z-index: 13000;
+  background: transparent;
+  color: #fff;
+}
+
+.nutrition-live canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.nutrition-live .live-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: max(calc(var(--f7-safe-area-top) + 8px), calc(env(safe-area-inset-top, 0px) + 8px), 32px) 8px 8px 8px;
+  background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0));
+}
+
+.nutrition-live .live-top .link {
+  color: #fff;
+}
+
+.nutrition-live .live-status {
+  flex: 1;
+  font-size: 15px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.nutrition-live .live-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 calc(var(--f7-safe-area-bottom) + 28px) 0;
+  background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.55));
+}
+
+.nutrition-live .live-shutter {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  background: rgba(255, 255, 255, 0.35);
+  box-sizing: border-box;
+}
+
+.nutrition-live .live-shutter:active {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* Review: the photo with highlights above a scrollable list of values */
+
+.nutrition-review .page-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: 0;
+}
+
+.nutrition-review .scan-image {
+  position: relative;
+  flex: 0 0 42%;
+  overflow: hidden;
+  background: #222;
+}
+
+.nutrition-review .scan-image > .preloader {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -16px 0 0 -16px;
+}
+
+.nutrition-review .scan-image svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.nutrition-review .scan-image polygon {
+  stroke-width: 1px;
+}
+
+/* Text found, then read, while the photo is being read */
+.nutrition-review .scan-image .ocr-box {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.8);
+  stroke-dasharray: 3 2;
+}
+
+.nutrition-review .scan-image .ocr-line {
+  fill: rgba(255, 255, 255, 0.15);
+  stroke: rgba(255, 255, 255, 0.9);
+}
+
+.nutrition-review .scan-image g.done {
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+/* Values read for the chosen column, and the chosen nutrient's row */
+.nutrition-review .scan-image .found {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.7);
+}
+
+.nutrition-review .scan-image .row-box {
+  fill: rgba(var(--f7-theme-color-rgb), 0.12);
+  stroke: var(--f7-theme-color);
+  stroke-width: 1.5px;
+}
+
+.nutrition-review .scan-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nutrition-review .scan-status .preloader {
+  width: 20px;
+  height: 20px;
+}
+
+.nutrition-review .scan-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--f7-safe-area-bottom);
+}
+
+.nutrition-review .scan-list .block {
+  margin: 12px 0;
+}
+
+/* Nutrient names can be tapped to show where they were read from */
+.nutrition-review #scan-values .item-title {
+  color: var(--f7-theme-color);
+}
+
+.nutrition-review .scan-list li.selected {
+  background: rgba(var(--f7-theme-color-rgb), 0.1);
+}

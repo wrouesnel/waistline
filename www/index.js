@@ -546,6 +546,9 @@ const handleBackButtonWithConfirm = (confirmMessage, backAction) => {
 
 document.addEventListener("backbutton", (e) => {
 
+  if (app.NutritionScanner.handleBackButton())
+    return false;
+
   let dialogs = document.querySelectorAll(".dialog");
   if (dialogs.length) {
     app.f7.dialog.close(".dialog");

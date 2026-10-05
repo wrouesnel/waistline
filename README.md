@@ -7,7 +7,7 @@ Waistline is a libre calorie counter and weight tracker app for Android. It's bu
 Check out the [user guide](FAQ.md) for a detailed explanation of the features and for frequently asked questions. Features of Waistline include:
 
 - Diary: This is where users can keep a day-by-day account of the food they eat at different times.
-- Food List: This is where users can create a local database of foods. This can be done either by inputting the food details manually, by scanning the barcode of a product, or by searching for the product online. Waistline can connect to Open Food Facts and the USDA food database to find information about products.
+- Food List: This is where users can create a local database of foods. This can be done either by inputting the food details manually, by OCR recognition of the nutrition label, by scanning the barcode of a product, or by searching for the product online. Waistline can connect to Open Food Facts and the USDA food database to find information about products.
 - Import and export functionality to backup and restore app data.
 - Waistline is free and open source software.
 - Waistline doesn't contain any ads or in-app purchases.

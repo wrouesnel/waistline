@@ -42,6 +42,19 @@ a431985659dc921974177a95adcfbb90fd9e51989a5e04d70d0b75f597b6e61d  PP-OCRv5_mobil
 ccbcc45730b3fbbd9050c5bc74db6a99067141ef1035e3d14889a84a6b9b1aff  latin_PP-OCRv5_mobile_rec_dict.txt
 ```
 
+## Engines
+
+`recognize` and `startPreview` take `engine`: `"paddle"` (the default, described below) or
+`"mlkit"`, Google ML Kit text recognition with its bundled Latin model
+(`com.google.mlkit:text-recognition`). ML Kit runs on the device and doesn't need Google Play
+Services, but it is proprietary (Google's ML Kit terms), so builds with it don't suit F-Droid.
+ML Kit's lines can run across a whole table row, so they are split into pieces wherever the gap
+between words is wide, to match PaddleOCR's boxes.
+
+Privacy: ML Kit's init provider is removed from the manifest, so it only starts when the ML Kit
+engine is first used, and the backend that uploads its usage logs to Google
+(`datatransport` CCT) is removed too. PaddleOCR's models are only loaded when it is used.
+
 ## Runtime
 
 [ONNX Runtime](https://github.com/microsoft/onnxruntime) for Android (MIT), from Maven Central,

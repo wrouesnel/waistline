@@ -31,6 +31,11 @@ app.NutritionScanner = {
   live: undefined,      // live preview state while it is open
   review: undefined,    // review popup while it is open
 
+  // The text recognition engine chosen in the settings: "paddle" (PaddleOCR) or "mlkit"
+  engine: function() {
+    return app.Settings.get("foodlist", "ocr-engine") || "paddle";
+  },
+
   strings: function() {
     return app.strings["food-editor"] || {};
   },
@@ -163,7 +168,7 @@ app.NutritionScanner = {
       console.error("Nutrition scanner: " + message);
       app.Utils.toast(app.strings.dialogs["camera-problem"] || "There was a problem accessing your camera.");
       this.closeLive();
-    });
+    }, { engine: this.engine() });
   },
 
   // The text of a recent frame has been read: note which lines are nutrient labels and values
@@ -330,7 +335,7 @@ app.NutritionScanner = {
       // Show values as soon as their rows have been read
       let read = (options, dx, dy) => {
         let lines = [];
-        return PaddleOcr.recognizeStream(uri, options, (event) => {
+        return PaddleOcr.recognizeStream(uri, Object.assign({ engine: this.engine() }, options), (event) => {
           if (event.event == "image") {
             // Later reads (of a crop, or the whole photo again) report their own size and no
             // preview: the photo shown stays the first one

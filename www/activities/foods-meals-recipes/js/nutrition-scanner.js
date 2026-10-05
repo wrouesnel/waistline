@@ -332,7 +332,10 @@ app.NutritionScanner = {
         let lines = [];
         return PaddleOcr.recognizeStream(uri, options, (event) => {
           if (event.event == "image") {
-            review.setImage(event);
+            // Later reads (of a crop, or the whole photo again) report their own size and no
+            // preview: the photo shown stays the first one
+            if (event.preview !== undefined)
+              review.setImage(event);
           } else if (event.event == "boxes") {
             review.addBoxes(event.boxes, dx, dy);
           } else if (event.event == "lines") {

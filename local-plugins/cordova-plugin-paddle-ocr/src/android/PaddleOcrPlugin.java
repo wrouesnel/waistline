@@ -39,6 +39,7 @@ public class PaddleOcrPlugin extends CordovaPlugin {
     private Object engine;  // OcrEngine, created on first use
     private Object scanner; // LiveScanner while the live preview is running
     private CallbackContext pendingPreview;
+    private String previewEngine = "paddle";
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -103,7 +104,9 @@ public class PaddleOcrPlugin extends CordovaPlugin {
                 });
                 return true;
             }
-            case "startPreview":
+            case "startPreview": {
+                JSONObject options = args.optJSONObject(0);
+                previewEngine = options != null ? options.optString("engine", "paddle") : "paddle";
                 if (cordova.hasPermission(Manifest.permission.CAMERA)) {
                     startPreview(callbackContext);
                 } else {
@@ -111,6 +114,7 @@ public class PaddleOcrPlugin extends CordovaPlugin {
                     cordova.requestPermission(this, CAMERA_REQUEST, Manifest.permission.CAMERA);
                 }
                 return true;
+            }
             case "capture":
                 cordova.getActivity().runOnUiThread(() -> {
                     if (scanner == null)
@@ -147,12 +151,15 @@ public class PaddleOcrPlugin extends CordovaPlugin {
         // the background and frames are read once they are ready
         cordova.getActivity().runOnUiThread(() -> {
             stopPreview();
-            LiveScanner live = new LiveScanner(cordova.getActivity(), webView.getView());
+            String engineName = previewEngine;
+            LiveScanner live = new LiveScanner(cordova.getActivity(), webView.getView(), engineName);
             scanner = live;
             live.start(callbackContext);
             cordova.getThreadPool().execute(() -> {
                 try {
-                    live.setEngine(getEngine());
+                    OcrEngine ocr = getEngine();
+                    ocr.warmUp(engineName);
+                    live.setEngine(ocr);
                 } catch (Throwable e) {
                     callbackContext.error(e.getClass().getSimpleName() + ": " + e.getMessage());
                 }

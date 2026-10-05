@@ -85,9 +85,12 @@ class LiveScanner {
     private volatile boolean capturing;  // frames aren't read while a photo is being taken
     private final ExecutorService captureExecutor = Executors.newSingleThreadExecutor();
 
-    LiveScanner(Activity activity, View webView) {
+    private final boolean useMlKit;
+
+    LiveScanner(Activity activity, View webView, String engineName) {
         this.activity = activity;
         this.webView = webView;
+        this.useMlKit = "mlkit".equals(engineName);
     }
 
     // The camera starts straight away; frames are only read once the models have loaded
@@ -180,6 +183,26 @@ class LiveScanner {
             Matrix m = new Matrix();
             m.postRotate(rotation);
             Bitmap upright = Bitmap.createBitmap(frame, crop.left, crop.top, crop.width(), crop.height(), m, true);
+
+            // ML Kit is quick enough to read every frame in one go
+            if (useMlKit) {
+                JSONArray lines = engine.mlkit().read(upright);
+                JSONObject found = new JSONObject();
+                found.put("event", "boxes");
+                found.put("width", upright.getWidth());
+                found.put("height", upright.getHeight());
+                found.put("boxes", lines);
+                JSONObject read = new JSONObject();
+                read.put("event", "frame");
+                read.put("width", upright.getWidth());
+                read.put("height", upright.getHeight());
+                read.put("lines", lines);
+                if (running) {
+                    send(read);
+                    send(found);
+                }
+                return;
+            }
 
             List<OcrEngine.Box> boxes = engine.detectBoxes(upright, LIVE_DET_LIMIT);
             JSONObject event = new JSONObject();

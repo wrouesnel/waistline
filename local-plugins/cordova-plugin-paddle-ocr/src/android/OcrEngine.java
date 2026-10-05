@@ -81,10 +81,12 @@ class OcrEngine {
     private static final float[] DET_STD = {0.229f, 0.224f, 0.225f};
 
     private final Context context;
-    private final OrtEnvironment env;
-    private final OrtSession det;
-    private final OrtSession rec;
-    private final String[] chars;
+    // PaddleOCR models, loaded on first use (not at all when ML Kit is used)
+    private OrtEnvironment env;
+    private OrtSession det;
+    private OrtSession rec;
+    private String[] chars;
+    private MlKitEngine mlkit;
     private final ExecutorService recPool = Executors.newFixedThreadPool(REC_WORKERS);
 
     static class Box {
@@ -99,8 +101,13 @@ class OcrEngine {
         void onLines(JSONArray lines) throws Exception;
     }
 
-    OcrEngine(Context context) throws Exception {
+    OcrEngine(Context context) {
         this.context = context;
+    }
+
+    private synchronized void ensurePaddle() throws Exception {
+        if (det != null)
+            return;
         env = OrtEnvironment.getEnvironment();
         try {
             env.setTelemetry(false);
@@ -109,7 +116,6 @@ class OcrEngine {
         // Text lines are read two batches at a time with three threads each, which keeps more
         // cores busy than one batch with more threads (on phones these models scale poorly
         // across threads within one run)
-        det = createSession(readAsset("paddleocr/det.onnx"), Math.max(1, Math.min(4, CORES)));
         rec = createSession(readAsset("paddleocr/rec.onnx"), Math.max(1, Math.min(3, CORES / REC_WORKERS)));
 
         // CTC classes: blank, the dictionary, then space
@@ -118,6 +124,21 @@ class OcrEngine {
         chars[0] = "";
         System.arraycopy(dict, 0, chars, 1, dict.length);
         chars[dict.length + 1] = " ";
+        det = createSession(readAsset("paddleocr/det.onnx"), Math.max(1, Math.min(4, CORES)));
+    }
+
+    synchronized MlKitEngine mlkit() {
+        if (mlkit == null)
+            mlkit = new MlKitEngine(context);
+        return mlkit;
+    }
+
+    // Load the chosen engine ahead of use, so the first photo isn't slowed down
+    void warmUp(String engine) throws Exception {
+        if ("mlkit".equals(engine))
+            mlkit();
+        else
+            ensurePaddle();
     }
 
     private OrtSession createSession(byte[] model, int threads) throws Exception {
@@ -129,10 +150,14 @@ class OcrEngine {
     void close() {
         recPool.shutdown();
         try {
-            det.close();
-            rec.close();
+            if (det != null)
+                det.close();
+            if (rec != null)
+                rec.close();
         } catch (Exception ignored) {
         }
+        if (mlkit != null)
+            mlkit.close();
     }
 
     JSONObject recognize(String uri, JSONObject options) throws Exception {
@@ -162,7 +187,9 @@ class OcrEngine {
             listener.onImage(info);
         }
         JSONObject region = options != null ? options.optJSONObject("region") : null;
-        JSONObject result = recognizeBitmap(image, options != null ? options.optInt("detLimit", DET_LIMIT) : DET_LIMIT, listener, region);
+        JSONObject result = options != null && "mlkit".equals(options.optString("engine"))
+            ? mlkit().recognizeBitmap(image, listener, region)
+            : recognizeBitmap(image, options != null ? options.optInt("detLimit", DET_LIMIT) : DET_LIMIT, listener, region);
         if (preview != null)
             result.put("preview", preview);
         return result;
@@ -238,6 +265,7 @@ class OcrEngine {
     // ---- Detection ----
 
     private List<Box> detect(Bitmap image, int detLimit) throws Exception {
+        ensurePaddle();
         int w = image.getWidth();
         int h = image.getHeight();
         float scale = (float) detLimit / Math.max(w, h);
@@ -425,6 +453,7 @@ class OcrEngine {
     // on the right to the widest crop in the batch (as PaddleOCR does), which is much faster
     // than reading them one at a time.
     void readBoxes(Bitmap image, List<Box> boxes, BatchSink sink) throws Exception {
+        ensurePaddle();
         List<Box> empty = Collections.synchronizedList(new ArrayList<>());
         readBoxes(image, boxes, sink, empty);
 

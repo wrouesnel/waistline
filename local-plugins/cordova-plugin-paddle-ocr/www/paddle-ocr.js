@@ -33,6 +33,7 @@ module.exports = {
   // relative to the (cropped) image and angle in radians.
   // options.preview: also return a JPEG data URL of the whole image, at most this many pixels
   // on its longest side.
+  // options.engine: "paddle" (PaddleOCR, the default) or "mlkit" (Google ML Kit).
   recognize: function(imageUri, options) {
     return new Promise(function(resolve, reject) {
       exec(resolve, reject, "PaddleOcr", "recognize", [imageUri, options || {}]);
@@ -65,8 +66,9 @@ module.exports = {
   // "boxes" ({width, height, boxes}) comes for every frame analysed; "frame" ({width, height,
   // lines}, like recognize()) whenever the text of a frame has been read, which is slower.
   // Coordinates are for the visible preview area.
-  startPreview: function(onEvent, onError) {
-    exec(onEvent, onError, "PaddleOcr", "startPreview", []);
+  // options.engine: "paddle" (default) or "mlkit"
+  startPreview: function(onEvent, onError, options) {
+    exec(onEvent, onError, "PaddleOcr", "startPreview", [options || {}]);
   },
 
   // Takes a full resolution photo of the preview area. Resolves to its file:// URI.

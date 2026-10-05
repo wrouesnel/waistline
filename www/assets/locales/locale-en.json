@@ -212,7 +212,17 @@
     "edit-meal": "Edit Meal Item",
     "edit-recipe": "Edit Recipe Item",
     "required-field-message": "Please fill out this field.",
-    "invalid-value-message": "Invalid Value."
+    "invalid-value-message": "Invalid Value.",
+    "scan-label": "Scan Nutrition Label",
+    "take-photo": "Take Photo",
+    "choose-photo": "Choose Photo",
+    "no-table-found": "Couldn't find a nutrition table. Try a closer, straighter photo.",
+    "scan-failed": "Couldn't read the photo.",
+    "per-100g": "Per 100g",
+    "per-100ml": "Per 100ml",
+    "column": "Column",
+    "point-at-label": "Point the camera at the nutrition table",
+    "table-found": "Nutrition table found"
   },
   "goals": {
     "title": "Goals",

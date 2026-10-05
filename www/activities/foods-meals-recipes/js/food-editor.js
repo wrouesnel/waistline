@@ -135,6 +135,7 @@ app.FoodEditor = {
     app.FoodEditor.el.ttsButton = document.querySelector(".page[data-name='food-editor'] #tts-button");
     app.FoodEditor.el.ttsIcon = document.querySelector(".page[data-name='food-editor'] #tts-icon");
     app.FoodEditor.el.nutritionButton = document.querySelector(".page[data-name='food-editor'] #nutrition-button");
+    app.FoodEditor.el.scanLabel = document.querySelector(".page[data-name='food-editor'] #scan-label");
     app.FoodEditor.el.mainPhoto = document.querySelector(".page[data-name='food-editor'] #main-photo");
     app.FoodEditor.el.addPhoto = Array.from(document.querySelectorAll(".page[data-name='food-editor'] .add-photo"));
     app.FoodEditor.el.addPhotoCamera = Array.from(document.querySelectorAll(".page[data-name='food-editor'] .add-photo-camera"));
@@ -147,6 +148,13 @@ app.FoodEditor = {
     // Submit
     app.FoodEditor.el.submit.addEventListener("click", (e) => {
       app.FoodEditor.returnItem(app.FoodEditor.item, app.FoodEditor.index, app.FoodEditor.origin);
+    });
+
+    // Scan nutrition label. Stop the click from also toggling the Nutrition accordion.
+    app.FoodEditor.el.scanLabel.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      app.NutritionScanner.start();
     });
 
     // Portion
@@ -268,6 +276,7 @@ app.FoodEditor = {
 
     } else {
       app.FoodEditor.el.quantityContainer.style.display = "none";
+      app.NutritionScanner.init(app.FoodEditor.el.scanLabel);
 
       if (app.FoodEditor.scan == true) {
         app.FoodEditor.el.link.style.display = "none";

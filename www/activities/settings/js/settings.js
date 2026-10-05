@@ -751,6 +751,7 @@ app.Settings = {
         labels: app.FoodsCategories.defaultLabels,
         categories: app.FoodsCategories.defaultCategories,
         sort: "alpha",
+        "ocr-engine": "paddle",
         "show-category-labels": false,
         "show-thumbnails": false,
         "wifi-thumbnails": true,

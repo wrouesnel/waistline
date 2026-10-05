@@ -54,6 +54,20 @@
         </li>
 
         <li>
+          <div class="item-content item-input">
+            <div class="item-inner">
+              <div class="item-title item-label" data-localize="settings.foods.ocr-engine">Text Recognition (Nutrition Label Scanner)</div>
+              <div class="item-input-wrap input-dropdown-wrap">
+                <select name="ocr-engine" field="foodlist">
+                  <option value="paddle" selected data-localize="settings.foods.ocr-engine-paddle">PaddleOCR (open source)</option>
+                  <option value="mlkit" data-localize="settings.foods.ocr-engine-mlkit">Google ML Kit</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li>
           <div class="item-content">
             <div class="item-inner">
               <div class="item-title" data-localize="settings.foods.category-labels">Show Category Labels</div>

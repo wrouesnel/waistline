@@ -26,11 +26,21 @@
       <uses-sdk tools:overrideLibrary="ai.onnxruntime,androidx.camera.core,androidx.camera.camera2,androidx.camera.camera2.pipe,androidx.camera.lifecycle,androidx.camera.view,androidx.camera.video,androidx.camera.viewfinder.core,androidx.media3.muxer,androidx.media3.container,androidx.media3.common,androidx.core.backported.fixes,androidx.camera.featurecombinationquery" xmlns:tools="http://schemas.android.com/tools" />
     </config-file>
 
-    <!-- Remove ONNX Runtime's telemetry initializer -->
+    <!-- Remove ONNX Runtime's telemetry initializer. For ML Kit: don't start it with the app (it's
+         started when the ML Kit engine is first used), and remove the backend that uploads its
+         usage logs to Google. -->
     <config-file target="AndroidManifest.xml" parent="/manifest/application">
       <provider android:name="ai.onnxruntime.TelemetryInitializer"
                 android:authorities="${applicationId}.onnxruntime_telemetry_initializer"
                 tools:node="remove" xmlns:tools="http://schemas.android.com/tools" />
+      <provider android:name="com.google.mlkit.common.internal.MlKitInitProvider"
+                android:authorities="${applicationId}.mlkitinitprovider"
+                tools:node="remove" xmlns:tools="http://schemas.android.com/tools" />
+      <service android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+               android:exported="false" xmlns:tools="http://schemas.android.com/tools">
+        <meta-data android:name="backend:com.google.android.datatransport.cct.CctBackendFactory"
+                   tools:node="remove" />
+      </service>
     </config-file>
 
     <config-file target="AndroidManifest.xml" parent="/manifest">
@@ -42,10 +52,13 @@
     <framework src="androidx.camera:camera-lifecycle:1.6.2" />
     <framework src="androidx.camera:camera-view:1.6.2" />
     <framework src="androidx.exifinterface:exifinterface:1.3.7" />
+    <!-- Google ML Kit text recognition (bundled Latin model), the optional second engine -->
+    <framework src="com.google.mlkit:text-recognition:16.0.1" />
 
     <source-file src="src/android/PaddleOcrPlugin.java" target-dir="src/com/waistline/paddleocr" />
     <source-file src="src/android/OcrEngine.java" target-dir="src/com/waistline/paddleocr" />
     <source-file src="src/android/LiveScanner.java" target-dir="src/com/waistline/paddleocr" />
+    <source-file src="src/android/MlKitEngine.java" target-dir="src/com/waistline/paddleocr" />
 
     <resource-file src="models/PP-OCRv5_mobile_det.onnx" target="assets/paddleocr/det.onnx" />
     <resource-file src="models/latin_PP-OCRv5_mobile_rec.onnx" target="assets/paddleocr/rec.onnx" />

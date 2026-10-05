@@ -181,6 +181,10 @@ app.NutritionLabelParser = {
 
       // "2,190 kJ" is a thousands separator, "0,190" a decimal comma
       let digits = m[2];
+      let rawDigits = digits;
+      // A leading zero means a lost decimal point: "02g" is 0.2g
+      if (/^0\d+$/.test(digits))
+        digits = "0." + digits.slice(1);
       if (/^[1-9]\d?,\d{3}$/.test(digits) && (unit == "kj" || unit == "kcal" || unit == "mg"))
         digits = digits.replace(",", "");
 
@@ -191,6 +195,7 @@ app.NutritionLabelParser = {
         box: this.subBox(line, start, raw.length),
         raw: m[0].trim(),
         digits: digits,
+        rawDigits: rawDigits,
         value: parseFloat(digits.replace(",", ".")),
         unit: unit,
         pct: unit == "%" || /^\s*\)?%/.test(text.slice(last)),
@@ -352,6 +357,7 @@ app.NutritionLabelParser = {
     result.forEach((col) => this.fixEnergy(col.values));
     result = result.filter((col) => Object.keys(col.values).length >= 2);
     this.guessBases(result, lines);
+    this.repairDecimals(result);
 
     // Drop sparse columns of unknown basis (stray numbers) when the table has real columns
     let most = Math.max.apply(null, result.map((c) => Object.keys(c.values).length).concat([0]));
@@ -475,6 +481,7 @@ app.NutritionLabelParser = {
           col.values[key] = {
             value: value,
             unit: unit || undefined,
+            digits: tok.rawDigits,
             source: { value: tok.box, label: labelByKey[key] ? this.lineBox(labelByKey[key]) : undefined }
           };
           col.minY = Math.min(col.minY, tok.y);
@@ -492,6 +499,7 @@ app.NutritionLabelParser = {
           col.values[key] = {
             value: tok.value,
             unit: tok.unit == "kj" ? "kJ" : "kcal",
+            digits: tok.rawDigits,
             source: { value: tok.box, label: label ? this.lineBox(label.line) : undefined }
           };
           col.minY = Math.min(col.minY, tok.y);
@@ -767,6 +775,63 @@ app.NutritionLabelParser = {
         return { amount: parseFloat(m[1]), unit: m[2] };
     }
     return undefined;
+  },
+
+  // Per 100 values should be per serving values x 100 / serving size. Where one is far off and
+  // reading it with a decimal point ("153" as 15.3, "14" as 1.4) fits closely, use that: OCR
+  // often loses decimal points.
+  repairDecimals: function(columns) {
+    let per100 = columns.find((c) => c.basis == "100");
+    let serving = columns.find((c) => c.basis == "serving" && c.amount > 0);
+    if (per100 === undefined || serving === undefined)
+      return;
+    let ratio = 100 / serving.amount;
+
+    let readings = (entry) => {
+      if (entry.digits === undefined)
+        return [];
+      let ds = [entry.digits];
+      if (/\d9$/.test(entry.digits))
+        ds.push(entry.digits.slice(0, -1)); // "g" read as "9"
+      let out = [];
+      ds.forEach((d) => {
+        d = d.replace(",", ".");
+        out.push(parseFloat(d));
+        if (!d.includes(".")) {
+          for (let i = 1; i < d.length; i++)
+            out.push(parseFloat(d.slice(0, i) + "." + d.slice(i)));
+        }
+      });
+      return out.filter((v) => !isNaN(v));
+    };
+    let off = (v, expected) => Math.abs(v - expected) / expected;
+    // Read with a decimal point (a leading zero, "02", is one that was lost and put back)
+    let precise = (entry) => entry.digits !== undefined && /[.,]|^0\d/.test(entry.digits);
+    let fix = (entry, expected) => {
+      if (!(expected > 0) || off(entry.value, expected) <= 0.4)
+        return;
+      let best = readings(entry).sort((a, b) => off(a, expected) - off(b, expected))[0];
+      if (best !== undefined && off(best, expected) <= 0.15)
+        entry.value = best;
+    };
+
+    for (let key in per100.values) {
+      let a = per100.values[key];
+      let b = serving.values[key];
+      if (b === undefined || a.unit != b.unit)
+        continue;
+      // Values this small are dominated by rounding ("<0.1 g"), so leave them alone
+      if (a.value < 0.5 && b.value < 0.5)
+        continue;
+      if (off(a.value, b.value * ratio) <= 0.4)
+        continue;
+      // A lost decimal point leaves a number without one, opposite one that has one: only that
+      // side is rewritten (a lost digit, "77" read as "7", can't be fixed this way)
+      if (!precise(a) && precise(b))
+        fix(a, b.value * ratio);
+      else if (!precise(b) && precise(a))
+        fix(b, a.value / ratio);
+    }
   },
 
   // Converts a parsed value to the unit the app stores for that nutrient
